@@ -1,0 +1,7 @@
+environ==1.0
+Django==3.2.7
+requests==2.25.1
+dj_database_url==0.5.0
+django_heroku==0.3.1
+djangorestframework==3.12.4
+utils==1.0.1
