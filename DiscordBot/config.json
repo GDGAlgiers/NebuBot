@@ -1,4 +1,5 @@
 {
+    "DISORD_TOKEN": "",
     "STARTUP_COGS": ["competition"],
     "EMBED_COLOR": "0x00FF00",
     "API_URL": "http://localhost:8080/",
