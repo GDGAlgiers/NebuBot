@@ -15,11 +15,9 @@ import sys
 import datetime
 import time 
 from aiohttp import ClientSession
-from discord.ext import commands,tasks
-from core.utils import getchannel,getuser,getguild
+from discord.ext import commands
 from keep_alive import keep_alive
-from core.utils import send_embed,loads_to_object
-from core import errors
+from utils import send_embed,loads_to_object
 from json import  loads
 
 
@@ -100,10 +98,36 @@ async def on_command_completion(ctx):
 @bot.event
 async def on_command_error(context, error):
     # here we log the error
-    print("Uncaught error !")
     print("Error type:", type(error))
-    print("Error message:", error)
-    await context.send(":x: Error")
+
+    # then handle it !
+    if isinstance(error, commands.CommandOnCooldown):
+        await send_embed(context,"Error!","This command is on a %.2fs cooldown" % error.retry_after)
+    elif isinstance(error, commands.errors.PrivateMessageOnly):
+        await send_embed(context,"DMs only","This service is only available in direct messages",discord.Colour.gold())
+    elif isinstance(error, commands.errors.MissingRequiredArgument):
+        await send_embed(context,"Missing Arguments","you need to specify the UUID",discord.Colour.gold())
+    elif isinstance(error, discord.Forbidden):
+        await send_embed(context,"Permission Denied","I don't have permissions to post in that channel",discord.Colour.gold())
+    elif isinstance(error,errors.AuthorizationError):
+        await send_embed(context,"Error!","You don't have the permission to use this command.")
+    elif isinstance(error,errors.UnknownError):
+        await send_embed(context,"Error!",":frowning2:  Sorry i got an unkown error , can you please report this to the admins :pray: ")
+    elif isinstance(error,errors.NotRegistered):
+        await send_embed(context,"Not Registered !","It seems that you still has **not registered** to Our Event :eyes:   **OR** you have already registered :white_check_mark:  but you **didn't confirm** :ok: \n if this is the case please confirm by clicking the **confirm button** in the confirmation email :ok:")
+    elif isinstance(error,errors.InvalidTeamName):
+        await send_embed(context,"Invalid Team Name","Sorry you have submitted a wrong team name ! ")
+    elif isinstance(error,commands.errors.CommandNotFound):
+        await send_embed(context,"Invalid Command","Sorry I don't understand this command")
+
+    elif isinstance(error,asyncio.exceptions.TimeoutError):
+        await send_embed(context,"Timeout ","Message announcement creation failed, you took too long to provide the requested information.")
+    else:
+        print("Uncaught error !")
+        print("Error type:", type(error))
+        print("Error message:", error)
+        await context.send(":x: Error")
+        raise error
         
         
 

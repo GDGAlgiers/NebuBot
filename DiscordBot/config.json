@@ -1,0 +1,10 @@
+{
+    "STARTUP_COGS": ["competition"],
+    "EMBED_COLOR": "0x00FF00",
+    "API_URL": "http://localhost:8080/",
+    "SPACES": [],
+    "LOG_CHANNEL": "",
+    "TEAM_NAME_SUFFIX_CHANNEL": "",
+    "MENTOR_ROLE": "",
+    "PROFILE_PICTURE_URL": "https://firebasestorage.googleapis.com/v0/b/gdg-wtm-website.appspot.com/o/BrainyPdp.png?alt=media&token=69c27608-fbe9-4785-b845-5bc5f0de4830"
+}
