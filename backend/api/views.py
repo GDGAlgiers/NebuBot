@@ -13,8 +13,8 @@ import requests
 from datetime import datetime
 from django.urls import reverse
 
-from .models import Contributor, Participant, Team
-from .serializers import ContributorSerializer, ParticipantSerializer,TeamSerializer
+#from .models import Contributor, Participant, Team
+#from .serializers import ContributorSerializer, ParticipantSerializer,TeamSerializer
 from urllib.parse import urlencode
 from .utils import join_server,add_role
 
@@ -23,65 +23,88 @@ from backend.settings import DISCORD_CLIENT_ID,DISCORD_CLIENT_SECRET,API_ENDPOIN
 MAX_MEMBER = 3
 
 @api_view(['GET'])
-def get_all_contributors(request):
+def get_all_participants(request):
     if request.method == 'GET':
-        contributors = Contributor.objects.all()
+        #participants = Participant.objects.all()
         
-        contributors_serializer = ContributorSerializer(contributors, many=True)
-        return JsonResponse(contributors_serializer.data, safe=False)
-
+        participants_serializer = "{\"test\": \"a\"}"#ParticipantSerializer(participants, many=True)
+        return JsonResponse(participants_serializer, safe=False)
 
 @api_view(['GET'])
-def timeleft(request):
-    if request.method == 'GET':        
-        dayJ= EVENT_DATE
-        now = datetime.now()
+def get_all_organizers(request):
+    if request.method == 'GET':
+        #organizers = Organizer.objects.all()
+        
+        organizers_serializer = "{\"test\": \"a\"}"#OrganizerSerializer(organizers, many=True)
+        return JsonResponse(organizers_serializer, safe=False)
+
+@api_view(['GET'])
+def get_all_mentors(request):
+    if request.method == 'GET':
+        #mentors = Mentor.objects.all()
+        
+        mentors_serializer = "{\"test\": \"a\"}"#MentorSerializer(mentors, many=True)
+        return JsonResponse(mentors_serializer, safe=False)
+
+
+# @api_view(['GET'])
+# def get_all_contributors(request):
+#     if request.method == 'GET':
+#         contributors = Contributor.objects.all()
+        
+#         contributors_serializer = ContributorSerializer(contributors, many=True)
+#         return JsonResponse(contributors_serializer.data, safe=False)
+
+
+# @api_view(['GET'])
+# def timeleft(request):
+#     if request.method == 'GET':        
+#         dayJ= EVENT_DATE
+#         now = datetime.now()
 
         
-        if dayJ < now :#after event
-            delta = now - now
-        else:
-            delta = dayJ - now
+#         if dayJ < now :#after event
+#             delta = now - now
+#         else:
+#             delta = dayJ - now
 
-        secs = delta.seconds
-        timedata=dict()
-        timedata["days"] = delta.days
-        timedata["hours"] = secs // 3600
-        timedata["minutes"] = (secs // 60) % 60
-        timedata["seconds"] = secs % 60 
+#         secs = delta.seconds
+#         timedata=dict()
+#         timedata["days"] = delta.days
+#         timedata["hours"] = secs // 3600
+#         timedata["minutes"] = (secs // 60) % 60
+#         timedata["seconds"] = secs % 60 
 
-        return JsonResponse(timedata, safe=False)
+#         return JsonResponse(timedata, safe=False)
 
-class ParticipantCreateAPIView(CreateAPIView):
+# class ParticipantCreateAPIView(CreateAPIView):
 
-    renderer_classes = [JSONRenderer]
-    queryset = Participant.objects.all()
-    serializer_class = ParticipantSerializer
+#     renderer_classes = [JSONRenderer]
+#     queryset = Participant.objects.all()
+#     serializer_class = ParticipantSerializer
     
-    def create(self, request, *args, **kwargs):
-        # getting serializer
-        serializer = self.get_serializer(data=request.data)
-        # validating data 
-        serializer.is_valid(raise_exception=True)
+#     def create(self, request, *args, **kwargs):
+#         # getting serializer
+#         serializer = self.get_serializer(data=request.data)
+#         # validating data 
+#         serializer.is_valid(raise_exception=True)
 
-        # save particpant
-        participant = self.perform_create(serializer)
+#         # save particpant
+#         participant = self.perform_create(serializer)
 
-        # get url of confirmation
-        redirect_url =  request.build_absolute_uri(reverse('api:registration_confirmation'))
-        oauth_url = get_oauth2(redirect_url,str(participant.id))
-        # send confirmation to the email of participant
-        sendConfirmation(participant.email,participant.fullname,oauth_url)
+#         # get url of confirmation
+#         redirect_url =  request.build_absolute_uri(reverse('api:registration_confirmation'))
+#         # oauth_url = get_oauth2(redirect_url,str(participant.id))
 
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=HTTP_200_OK, headers=headers)
+#         headers = self.get_success_headers(serializer.data)
+#         return Response(serializer.data, status=HTTP_200_OK, headers=headers)
 
-    def perform_create(self, serializer):
-        if (self.request.data.get('study_at') == 'other'):
-            participant=  serializer.save(study_at=self.request.data.get('other_name'))
-            return participant
-        participant= serializer.save()
-        return participant
+#     def perform_create(self, serializer):
+#         if (self.request.data.get('study_at') == 'other'):
+#             participant=  serializer.save(study_at=self.request.data.get('other_name'))
+#             return participant
+#         participant= serializer.save()
+#         return participant
 
 
 def get_oauth2(redirect_url,participant_id):
