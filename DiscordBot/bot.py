@@ -93,7 +93,6 @@ async def on_command_completion(ctx):
         f"Executed {executedCommand} command in {guild_name} by {ctx.message.author} (ID: {ctx.message.author.id})")
 
 
-
 # The code in this event is executed every time a valid commands catches an error
 @bot.event
 async def on_command_error(context, error):
