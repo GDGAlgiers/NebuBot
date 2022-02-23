@@ -4,7 +4,7 @@ from api import views
 
 
 urlpatterns = [
-    path('participants/register',views.RegisterParticipant),
+    path('participants/register',views.confirm_participant),
     re_path('participants/',views.get_all_participants),
     re_path('organizers/',views.get_all_organizers),
     re_path('mentors/',views.get_all_mentors),

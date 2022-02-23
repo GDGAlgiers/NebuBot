@@ -146,7 +146,54 @@ def GetParticipant(request,participant_id=None):
     except :
         return JsonResponse({"status":"NO_PARTICIPANT"},safe=False)
         
+@api_view(['GET'])
+def confirm_participant(request):
+    hashcodeId=810540955827830806
+    if request.method == 'GET':
+        code = request.GET.get('code',None)
+        state = request.GET.get('state',None)
+        try:
+            particpant = Participant.objects.get(id=state)
+        except ObjectDoesNotExist:
+            return redirect('main:registrations')
+        
+        data = {
+          "client_id": DISCORD_CLIENT_ID,
+          "client_secret": DISCORD_CLIENT_SECRET,
+          'grant_type': 'authorization_code',
+          'code': code,
+          'redirect_uri': "http://79d8-105-101-36-226.ngrok.io/api/participants/register" #same link as we put in the redirect discord dev portal
+        }
+        headers = {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        r = requests.post(f'https://discord.com/api/oauth2/token', data=data, headers=headers)
+        print(r.json())
+        r.raise_for_status()
+        response = r.json()
+        access_token = response["access_token"]
 
+        response = requests.get(f'{API_ENDPOINT}/users/@me', headers={
+            "Authorization":f"Bearer {access_token}"
+        })
+        
+        user = response.json()
+        print(user)
+
+        participants = Participant.objects.filter(discord_id=user["id"])
+        if participants.count()>0:
+            return JsonResponse({"error":"You are already registered and you have joined the server space. thank you for checking our discord server"},safe=False)
+
+
+        particpant.discord_id = user["id"]
+        particpant.discord_username = user["username"]
+        particpant.save()
+        status = join_server(access_token,user['id'],[hashcodeId])
+        if status ==204:
+            add_role(user['id'],hashcodeId)
+        return redirect("https://www.gdgalgiers.com/discord")
+    
+    return JsonResponse({},safe=False)
 @api_view(['POST'])
 def verify(request):
     data = JSONParser().parse(request)
@@ -164,46 +211,6 @@ def verify(request):
         "participant_id" : participant_serializer.data['id']
         },safe=False)
 
-
-@api_view(['GET'])
-def RegisterParticipant(request):
-    hashcodeId=810540955827830806
-    participant_id=request.GET.get('state', '')
-    code=request.GET.get('code', '')
-    participant = Participant.objects.get(id=participant_id)
-    try:
-            data = {
-            "client_id": DISCORD_CLIENT_ID,
-            "client_secret": DISCORD_CLIENT_SECRET,
-            'grant_type': 'authorization_code',
-            'code': code,
-            'redirect_uri': 'https://www.gdgalgiers.com/discord'
-            }
-            headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
-            }
-            req = requests.post(f'{API_ENDPOINT}/oauth2/token', data=data, headers=headers)
-            req.raise_for_status()
-            response = req.json()
-            access_token = response["access_token"]
-            response = requests.get(f'{API_ENDPOINT}/users/@me', headers={
-                "Authorization":f"Bearer {access_token}"
-            })
-            user = response.json()
-            participants = Participant.objects.filter(discord_id=user["id"])
-            if participants.count()>0:
-                return JsonResponse({"error":"You are already registered and you have joined the server space. thank you for checking our discord server"},safe=False)
-            participant.discord_id = user["id"]
-            participant.discord_username = user["username"]
-            participant.save()
-            status = join_server(access_token,user['id'],[hashcodeId])
-            if status ==204:
-                add_role(user['id'],hashcodeId)
-            return redirect("https://www.gdgalgiers.com/discord")
-    except Participant.DoesNotExist:
-            return JsonResponse({"status":"Participant not found"},safe=False)
-    except:
-            return JsonResponse({"status":"UNKNOWN_ERROR"},safe=False)
         
 @api_view(['POST'])
 def CreateTeam(request,participant_id=None):
