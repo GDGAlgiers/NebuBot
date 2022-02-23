@@ -14,6 +14,7 @@ from pathlib import Path
 import os 
 import environ
 
+
 # init env
 env = environ.Env(
     SENDGRID_API_KEY=(str,""),
@@ -70,7 +71,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    '79d8-105-101-36-226.ngrok.io'
+    'nebubot.herokuapp.com'
 ]
 
 
