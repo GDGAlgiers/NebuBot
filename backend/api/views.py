@@ -13,8 +13,8 @@ import requests
 from datetime import datetime
 from django.urls import reverse
 
-#from .models import Contributor, Participant, Team
-#from .serializers import ContributorSerializer, ParticipantSerializer,TeamSerializer
+from .models import  Participant
+from .serializers import  ParticipantSerializer
 from urllib.parse import urlencode
 from .utils import join_server,add_role
 
@@ -25,25 +25,25 @@ MAX_MEMBER = 3
 @api_view(['GET'])
 def get_all_participants(request):
     if request.method == 'GET':
-        #participants = Participant.objects.all()
+        participants = Participant.objects.all()
         
-        participants_serializer = "{\"test\": \"a\"}"#ParticipantSerializer(participants, many=True)
+        participants_serializer = ParticipantSerializer(participants, many=True)
         return JsonResponse(participants_serializer, safe=False)
 
 @api_view(['GET'])
 def get_all_organizers(request):
     if request.method == 'GET':
-        #organizers = Organizer.objects.all()
+        organizers = Organizer.objects.all()
         
-        organizers_serializer = "{\"test\": \"a\"}"#OrganizerSerializer(organizers, many=True)
+        organizers_serializer = OrganizerSerializer(organizers, many=True)
         return JsonResponse(organizers_serializer, safe=False)
 
 @api_view(['GET'])
 def get_all_mentors(request):
     if request.method == 'GET':
-        #mentors = Mentor.objects.all()
+        mentors = Mentor.objects.all()
         
-        mentors_serializer = "{\"test\": \"a\"}"#MentorSerializer(mentors, many=True)
+        mentors_serializer = MentorSerializer(mentors, many=True)
         return JsonResponse(mentors_serializer, safe=False)
 
 
@@ -55,56 +55,58 @@ def get_all_mentors(request):
 #         contributors_serializer = ContributorSerializer(contributors, many=True)
 #         return JsonResponse(contributors_serializer.data, safe=False)
 
+EVENT_DATE="2022-02-24 18:30:00"
 
-# @api_view(['GET'])
-# def timeleft(request):
-#     if request.method == 'GET':        
-#         dayJ= EVENT_DATE
-#         now = datetime.now()
+@api_view(['GET'])
+def timeleft(request):
+    if request.method == 'GET':        
+        dayJ= EVENT_DATE
+        now = datetime.now()
 
         
-#         if dayJ < now :#after event
-#             delta = now - now
-#         else:
-#             delta = dayJ - now
+        if dayJ < now :#after event
+            delta = now - now
+        else:
+            delta = dayJ - now
 
-#         secs = delta.seconds
-#         timedata=dict()
-#         timedata["days"] = delta.days
-#         timedata["hours"] = secs // 3600
-#         timedata["minutes"] = (secs // 60) % 60
-#         timedata["seconds"] = secs % 60 
+        secs = delta.seconds
+        timedata=dict()
+        timedata["days"] = delta.days
+        timedata["hours"] = secs // 3600
+        timedata["minutes"] = (secs // 60) % 60
+        timedata["seconds"] = secs % 60 
 
-#         return JsonResponse(timedata, safe=False)
+        return JsonResponse(timedata, safe=False)
 
-# class ParticipantCreateAPIView(CreateAPIView):
+class ParticipantCreateAPIView(CreateAPIView):
 
-#     renderer_classes = [JSONRenderer]
-#     queryset = Participant.objects.all()
-#     serializer_class = ParticipantSerializer
+    renderer_classes = [JSONRenderer]
+    queryset = Participant.objects.all()
+    serializer_class = ParticipantSerializer
     
-#     def create(self, request, *args, **kwargs):
-#         # getting serializer
-#         serializer = self.get_serializer(data=request.data)
-#         # validating data 
-#         serializer.is_valid(raise_exception=True)
+    def create(self, request, *args, **kwargs):
+        print(request.data);input()
+        # getting serializer
+        serializer = self.get_serializer(data=request.data)
+        # validating data
+        serializer.is_valid(raise_exception=True)
 
-#         # save particpant
-#         participant = self.perform_create(serializer)
+        # save particpant
+        participant = self.perform_create(serializer)
 
-#         # get url of confirmation
-#         redirect_url =  request.build_absolute_uri(reverse('api:registration_confirmation'))
-#         # oauth_url = get_oauth2(redirect_url,str(participant.id))
+        # get url of confirmation
+        redirect_url =  request.build_absolute_uri(reverse('api:registration_confirmation'))
+        oauth_url = get_oauth2(redirect_url,str(participant.id))
 
-#         headers = self.get_success_headers(serializer.data)
-#         return Response(serializer.data, status=HTTP_200_OK, headers=headers)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK, headers=headers)
 
-#     def perform_create(self, serializer):
-#         if (self.request.data.get('study_at') == 'other'):
-#             participant=  serializer.save(study_at=self.request.data.get('other_name'))
-#             return participant
-#         participant= serializer.save()
-#         return participant
+    def perform_create(serializer):
+        if (request.data.get('study_at') == 'other'):
+            participant=  serializer.save(study_at=self.request.data.get('other_name'))
+            return participant
+        participant= serializer.save()
+        return participant
 
 
 def get_oauth2(redirect_url,participant_id):
@@ -123,66 +125,6 @@ def get_oauth2(redirect_url,participant_id):
 
 
 
-@api_view(['GET'])
-def confirm_participant(request):
-    """
-        confirm a participant : 
-            Receive a code and participant id in the get query 
-    """
-    if request.method == 'GET':
-        code = request.GET.get('code',None)
-        if not code:
-            return redirect('main:registrations')
-        state = request.GET.get('state',None)
-        if not state:
-            return redirect('main:registrations')
-        try:
-            particpant = Participant.objects.get(id=state)
-        except ObjectDoesNotExist:
-            return redirect('main:registrations')
-        
-        ## here we are sure that we have identified  participant and get a code 
-        redirect_url =  request.build_absolute_uri(reverse('api:registration_confirmation'))
-        data = {
-          "client_id": DISCORD_CLIENT_ID,
-          "client_secret": DISCORD_CLIENT_SECRET,
-          'grant_type': 'authorization_code',
-          'code': code,
-          'redirect_uri': redirect_url
-        }
-        headers = {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-        r = requests.post(f'{API_ENDPOINT}/oauth2/token', data=data, headers=headers)
-        r.raise_for_status()
-        response = r.json()
-        access_token = response["access_token"]
-        # After we got the access_token now we can  do whatever we need 
-
-        ## get the current user data 
-        response = requests.get(f'{API_ENDPOINT}/users/@me', headers={
-            "Authorization":f"Bearer {access_token}"
-        })
-        # here we got our user ! 
-        user = response.json()
-
-        # here check that the discord id has still not been added 
-        participants = Participant.objects.filter(discord_id=user["id"])
-        if participants.count()>0:
-            return JsonResponse({"error":"You are already registered and you have joined the server space. thank you for checking our discord server"},safe=False)
-
-
-        # save our participant
-        particpant.discord_id = user["id"]
-        particpant.discord_username = user["username"]
-        particpant.save()
-        status = join_server(access_token,user['id'],[842454863446016021])
-        if status ==204:
-            # user already in the server 
-            add_role(user['id'],842454863446016021)
-        return redirect("https://www.gdgalgiers.com/discord")
-    
-    return JsonResponse({},safe=False)
 
 ##################################################
 #           Hack The Bot Commands 
@@ -201,8 +143,8 @@ def GetParticipant(request,participant_id=None):
         return JsonResponse(data,safe=False)
     except Participant.DoesNotExist:
         return JsonResponse({"status":"Participant not found"},safe=False)
-    # except :
-    #     return JsonResponse({"status":"NO_PARTICIPANT"},safe=False)
+    except :
+        return JsonResponse({"status":"NO_PARTICIPANT"},safe=False)
         
 
 @api_view(['POST'])
@@ -223,6 +165,46 @@ def verify(request):
         },safe=False)
 
 
+@api_view(['GET'])
+def RegisterParticipant(request):
+    hashcodeId=810540955827830806
+    participant_id=request.GET.get('state', '')
+    code=request.GET.get('code', '')
+    participant = Participant.objects.get(id=participant_id)
+    try:
+            data = {
+            "client_id": DISCORD_CLIENT_ID,
+            "client_secret": DISCORD_CLIENT_SECRET,
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': 'https://www.gdgalgiers.com/discord'
+            }
+            headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            req = requests.post(f'{API_ENDPOINT}/oauth2/token', data=data, headers=headers)
+            req.raise_for_status()
+            response = req.json()
+            access_token = response["access_token"]
+            response = requests.get(f'{API_ENDPOINT}/users/@me', headers={
+                "Authorization":f"Bearer {access_token}"
+            })
+            user = response.json()
+            participants = Participant.objects.filter(discord_id=user["id"])
+            if participants.count()>0:
+                return JsonResponse({"error":"You are already registered and you have joined the server space. thank you for checking our discord server"},safe=False)
+            participant.discord_id = user["id"]
+            participant.discord_username = user["username"]
+            participant.save()
+            status = join_server(access_token,user['id'],[hashcodeId])
+            if status ==204:
+                add_role(user['id'],hashcodeId)
+            return redirect("https://www.gdgalgiers.com/discord")
+    except Participant.DoesNotExist:
+            return JsonResponse({"status":"Participant not found"},safe=False)
+    except:
+            return JsonResponse({"status":"UNKNOWN_ERROR"},safe=False)
+        
 @api_view(['POST'])
 def CreateTeam(request,participant_id=None):
     if request.method == "POST":
@@ -242,10 +224,9 @@ def CreateTeam(request,participant_id=None):
             print(e)
             return JsonResponse({"status":"UNKNOWN_ERROR"},safe=False)
 
-        if not created : 
+        if not created :
             return JsonResponse({"status":"TEAM_ALREADY_EXIST"},safe=False)
         else:
-            
             participant.is_leader = True
             participant.team =team
 
@@ -284,35 +265,6 @@ def JoinTeam(request,participant_id=None):
                 "team_name": team.name,
                 "message": f"You have successfully joined {team.name}"
                 })
-        except Participant.DoesNotExist:
-            return JsonResponse({"status":"Participant not found"},safe=False)
-        except:
-            return JsonResponse({"status":"UNKNOWN_ERROR"},safe=False)
-
-
-@api_view(['DELETE'])
-def RemoveMemberFromTeam(request,participant_id=None):
-    if request.method == "DELETE":
-        try:
-            participant = Participant.objects.get(pk=participant_id)
-            if participant.is_leader:
-                memberToRemove = JSONParser().parse(request)['member']
-                if memberToRemove == participant_id:
-                    return JsonResponse({"status":"you cannot delete yourself"},safe=False)
-
-                members = Participant.objects.filter(team=participant.team).filter(id=memberToRemove)
-                if len(members) == 1:
-                    member = members[0]
-                    print(member)
-                    member.team = None
-                    member_serializer = ParticipantSerializer(member, data=member.__dict__)
-                    if member_serializer.is_valid():
-                        member_serializer.save()
-                    return JsonResponse({"status":"SUCCESS"})
-                else:
-                    return JsonResponse({"status":"Wrong partcipant_id"},safe=False)
-            else:
-                return JsonResponse({"status":"You're not allowed to do that"},safe=False)
         except Participant.DoesNotExist:
             return JsonResponse({"status":"Participant not found"},safe=False)
         except:

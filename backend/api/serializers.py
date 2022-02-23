@@ -1,8 +1,8 @@
 from rest_framework import serializers 
-from api.models import Contributor, Participant, Team
+from api.models import  Participant
 
 # class ContributorSerializer(serializers.ModelSerializer):
-
+    
 #     class Meta:
 #         model = Contributor
 #         fields = (
@@ -17,11 +17,11 @@ from api.models import Contributor, Participant, Team
 #             'twitter_url',
 #         )
 
-# class ParticipantSerializer(serializers.ModelSerializer):
+class ParticipantSerializer(serializers.ModelSerializer):
     
-#     class Meta:
-#         model = Participant
-#         fields = '__all__'
+    class Meta:
+        model = Participant
+        fields = '__all__'
 
 # class TeamSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -32,4 +32,3 @@ from api.models import Contributor, Participant, Team
 #             'token',
 #             'image'
 #         )
-        

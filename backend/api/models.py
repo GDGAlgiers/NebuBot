@@ -14,22 +14,19 @@ CONTRIBUTER_TYPES = (
 #     def __str__(self):
 #         return f"{self.name}, {self.token}"
 
-# class Participant(models.Model):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     discord_id = models.CharField(max_length=100, null=True)
-#     discord_username = models.CharField(max_length=100, null=True)
-#     fullname = models.CharField(max_length=100)
-#     email = models.EmailField(max_length=100)
-#     role = models.CharField(max_length=100)
-#     study_at = models.CharField(blank=True, null=True, max_length=100)
-#     excitement = models.IntegerField()
-#     experience = models.CharField(max_length=100)
-#     team = models.ForeignKey(Team, blank=True, null=True, on_delete=models.CASCADE)
-#     is_leader = models.BooleanField(default=False)
-#     def __str__(self):
-#         return f"{self.id}, {self.fullname} , {self.email} ->Team:  {self.team}"
+class Participant(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    discord_id = models.CharField(max_length=100, null=True)
+    discord_username = models.CharField(max_length=100, null=True)
+    fullname = models.CharField(max_length=100)
+    email = models.EmailField(max_length=100)
+    role = models.CharField(max_length=100)
+    team = models.CharField(max_length=100)
+    is_leader = models.BooleanField(default=False)
+    def __str__(self):
+        return f"{self.id}, {self.fullname} , {self.email} ->Team:  {self.team}"
 
 
     
-#     def __str__(self):
-#         return str(self.name)
+    def __str__(self):
+        return str(self.name)
